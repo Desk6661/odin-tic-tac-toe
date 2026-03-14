@@ -68,19 +68,17 @@ const gameController = (function () {
     function playRound(position) {
         console.log("current player: ", currentPlayer.getName());
 
-        //gameBoard.placeMark(position, currentPlayer.getMarker());
         const moveSuccess = gameBoard.placeMark(position, currentPlayer.getMarker());
-
+        
         if (moveSuccess) {
-            
-
+            checkWin();
             switchPlayer();
         }
-
-
     }
 
     function checkWin() {
+        const board = gameBoard.getBoard();
+        let win = false;
         const winningCombos = [
             [0, 1, 2],
             [3, 4, 5],
@@ -92,7 +90,37 @@ const gameController = (function () {
             [2, 4, 6]
         ];
 
+        winningCombos.forEach((row) => {
+            const a = row[0];
+            const b = row[1];
+            const c = row[2];
+            if (board[a] !== "" && board[a] === board[b] && board[a] === board[c]) {
+                return win = true;
+            }
+        });
+
+        return win;
     }
 
-    return { getCurrentPlayer, switchPlayer, playRound };
+    function checkTie() {
+        const board = gameBoard.getBoard();
+        let tie = false;
+        let boardFull = false
+        
+        board.forEach(e => {
+            if (e === "") {
+                boardFull = false;
+            } else {
+                boardFull = true;
+            }
+        })
+
+        if (boardFull && !checkWin()) {
+            tie = true;
+        }
+
+        return tie;
+    }
+
+    return { getCurrentPlayer, switchPlayer, playRound, checkWin, checkTie };
 })();
