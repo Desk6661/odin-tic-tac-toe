@@ -52,6 +52,7 @@ const gameController = (function () {
     const player2 = createPlayer("disk", "O");
 
     let currentPlayer = player1;
+    let isGameOver = false;
 
     function getCurrentPlayer() {
         return currentPlayer;
@@ -66,19 +67,38 @@ const gameController = (function () {
     }
 
     function playRound(position) {
+
+        if (isGameOver) {
+            return;
+        }
+
         console.log("current player: ", currentPlayer.getName());
 
         const moveSuccess = gameBoard.placeMark(position, currentPlayer.getMarker());
-        
         if (moveSuccess) {
-            checkWin();
-            switchPlayer();
+            displayController.renderBoard();
+            const win = checkWin();
+            const tie = checkTie();
+
+            if (win.bool) {
+                console.log("player won the game: ", win.wonPlayer.getName(), win.wonPlayer.getMarker());
+                isGameOver = true;
+                stopGame();
+            } else if (tie) {
+                console.log("Tie! no one won the game.");
+                isGameOver = true;
+                stopGame();
+            } else {
+                switchPlayer();
+            }
         }
     }
 
     function checkWin() {
         const board = gameBoard.getBoard();
-        let win = false;
+        let bool = false;
+        let wonPlayer = getCurrentPlayer();
+
         const winningCombos = [
             [0, 1, 2],
             [3, 4, 5],
@@ -90,37 +110,53 @@ const gameController = (function () {
             [2, 4, 6]
         ];
 
-        winningCombos.forEach((row) => {
+        for (const row of winningCombos) {
             const a = row[0];
             const b = row[1];
             const c = row[2];
-            if (board[a] !== "" && board[a] === board[b] && board[a] === board[c]) {
-                return win = true;
-            }
-        });
 
-        return win;
+            if (board[a] !== "" && board[a] === board[b] && board[a] === board[c]) {
+                bool = true;
+                break;
+            }
+        }
+        return { bool, wonPlayer };
     }
 
     function checkTie() {
         const board = gameBoard.getBoard();
-        let tie = false;
-        let boardFull = false
-        
-        board.forEach(e => {
-            if (e === "") {
-                boardFull = false;
-            } else {
-                boardFull = true;
-            }
-        })
 
-        if (boardFull && !checkWin()) {
-            tie = true;
+        if (!board.includes("") && !checkWin().bool) {
+            return true;
+        } else {
+            return false;
         }
-
-        return tie;
     }
 
-    return { getCurrentPlayer, switchPlayer, playRound, checkWin, checkTie };
+    function stopGame() {
+
+    }
+
+    return { getCurrentPlayer, switchPlayer, playRound, checkWin, checkTie, stopGame };
+})();
+
+const displayController = (function () {
+    const cells = document.querySelectorAll(".cell");
+
+    function renderBoard() {
+        const board = gameBoard.getBoard();
+
+        cells.forEach((cell, index) => {
+            cell.textContent = board[index];
+        });
+    }
+
+    cells.forEach((cell, index) => {
+        cell.addEventListener("click", function () {
+            console.log("btn clicked!");
+            gameController.playRound(index);
+        });
+    });
+
+    return { renderBoard };
 })();
