@@ -82,10 +82,11 @@ const gameController = (function () {
 
             if (win.bool) {
                 console.log("player won the game: ", win.wonPlayer.getName(), win.wonPlayer.getMarker());
+                displayController.text.textContent = `${win.wonPlayer.getName()} won the game. their mark ${win.wonPlayer.getMarker()}`;
                 isGameOver = true;
-                stopGame();
             } else if (tie) {
                 console.log("Tie! no one won the game.");
+                displayController.text.textContent = "Tie! no one won the game.";
                 isGameOver = true;
                 stopGame();
             } else {
@@ -133,15 +134,18 @@ const gameController = (function () {
         }
     }
 
-    function stopGame() {
-
+    function resetGame() {
+        isGameOver = false;
+        currentPlayer = player1;
     }
 
-    return { getCurrentPlayer, switchPlayer, playRound, checkWin, checkTie, stopGame };
+    return { getCurrentPlayer, switchPlayer, playRound, checkWin, checkTie, resetGame };
 })();
 
 const displayController = (function () {
     const cells = document.querySelectorAll(".cell");
+    const text = document.getElementById("text");
+    const restart = document.getElementById("restart");
 
     function renderBoard() {
         const board = gameBoard.getBoard();
@@ -155,8 +159,15 @@ const displayController = (function () {
         cell.addEventListener("click", function () {
             console.log("btn clicked!");
             gameController.playRound(index);
+            renderBoard();
         });
     });
 
-    return { renderBoard };
+    restart.addEventListener("click", function() {
+        gameBoard.resetBoard();
+        gameController.resetGame();
+        renderBoard();
+    });
+
+    return { text, renderBoard };
 })();
